@@ -1,0 +1,16 @@
+tag=init-start
+tag=add id=1 shape=circle pos=0,0 radius=0.25
+tag=add id=2 shape=circle pos=1,0 radius=0.25
+tag=sim-step
+tag=update id=1 pos=0,0.25 vel=0,4
+tag=update id=2 pos=1,0.25 vel=0,4
+tag=sim-step
+tag=update id=1 pos=0,0.5 vel=0,4
+tag=update id=2 pos=1,0.5 vel=0,4
+tag=sim-step
+tag=update id=1 pos=0,0.75 vel=0,4
+tag=update id=2 pos=1,0.75 vel=0,4
+tag=sim-step
+tag=update id=1 pos=0,1 vel=0,4
+tag=update id=2 pos=1,1 vel=0,4
+tag=sim-end
