@@ -8,35 +8,61 @@ from matplotlib import pyplot as plt
 from matplotlib import animation
 from logfmt import parse
 
-def init():
-    patch.center = (0, 0)
-    ax.add_patch(patch)
-    return patch,
+def strToFTup(s):
+    return tuple(float(x) for x in s.split(','))
 
-def animate(i):
-    x, y = patch.center
-    x = 3 * np.sin(np.radians(i))
-    y = 3 * np.cos(np.radians(i))
-    patch.center = (x, y)
-    return patch,
+class LogToAnimation:
 
-with open('test/example.logfmt') as f:
-    for value in parse(f):
-        print(value)
+    def __init__(self, logpath):
+        self.patches = {}
+        self.positions = {}
+        self.steps = 0
+        tpos = {}
+        with open(logpath) as f:
+            for value in parse(f):
+                t = value['tag']
+                if t == 'add':
+                    if value['shape'] == 'circle':
+                        pos = strToFTup(value['pos'])
+                        k = value['id']
+                        self.patches[k] = plt.Circle(pos, float(value['radius']), fc='y')
+                        ax.add_patch(self.patches[k])
+                        self.positions[k] = []
+                        tpos[k] = pos
+                    else:
+                        print('Unknown shape ' + value['shape'])
+                elif t == 'update':
+                    tpos[value['id']] = strToFTup(value['pos'])
+                elif t == 'step':
+                    for k in self.patches.keys():
+                        self.positions[k].append(tpos[k])
+                    self.steps = self.steps + 1
+                else:
+                    print('Unknown tag ' + t)
 
-if False:
-    fig = plt.figure()
-    fig.set_dpi(100)
-    fig.set_size_inches(7, 6.5)
-    
-    ax = plt.axes(xlim=(-10, 10), ylim=(-10, 10))
-    patch = plt.Circle((0, 0), 0.2, fc='y')
+    def init(self):
+        return self.patches.values()
 
-    anim = animation.FuncAnimation(fig, animate, 
-                                   init_func=init, 
-                                   frames=360, 
-                                   interval=20,
-                                   blit=True)
-    
-    plt.show()
-    anim.save('animation.gif');
+    def animate(self, i):
+        ret = []
+        for k, v in self.patches.items():
+            v.center = self.positions[k][i]
+            ret.append(v)
+        return ret
+
+# Setup Plot
+fig = plt.figure()
+fig.set_dpi(100)
+fig.set_size_inches(7, 6.5)
+ax = plt.axes(xlim=(-10, 10), ylim=(-10, 10))
+
+# Parse Log
+loganim = LogToAnimation('test/example.logfmt')
+
+# Animate
+anim = animation.FuncAnimation(fig, loganim.animate,
+                               init_func=loganim.init,
+                               frames=loganim.steps,
+                               interval=33.34,
+                               blit=True)
+anim.save('animation.gif');
